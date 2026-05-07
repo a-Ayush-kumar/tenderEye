@@ -6,14 +6,20 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app.database import engine, Base
 from app.models import Tender, Bidder, BidderDocument
-from sqlalchemy.orm import Session
 from datetime import datetime
+
+try:
+    from app.database import SessionLocal
+except ImportError:
+    from sqlalchemy.orm import sessionmaker
+    SessionLocal = sessionmaker(bind=engine)
+
 
 def seed():
     # Create tables if they don't exist (never drop — preserves data)
     Base.metadata.create_all(bind=engine)
     
-    db = Session(bind=engine)
+    db = SessionLocal()
     
     # Check if already seeded
     existing = db.query(Tender).first()

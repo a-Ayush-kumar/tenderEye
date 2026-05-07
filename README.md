@@ -13,9 +13,7 @@ A local-dev tender evaluation platform with a FastAPI backend and a Next.js fron
 ```powershell
 git clone https://github.com/a-Ayush-kumar/tenderEye.git
 cd tenderEye
-git checkout rohan
-git pull origin rohan
-```
+
 
 ## 2. Install dependencies
 
@@ -67,7 +65,7 @@ Both should return status `200`.
 ## Project layout
 
 ```
-pro/
+tenderEye/
 ├── run_local.py          # local dev runner (backend + frontend)
 ├── backend/
 │   ├── app/              # FastAPI app (main.py, models.py, database.py, api/, services/)

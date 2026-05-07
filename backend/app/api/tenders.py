@@ -81,10 +81,12 @@ def _save_file_locally(file: UploadFile, sub_path: str) -> str:
 
 
 @router.get("", response_model=list[TenderResponse])
+@router.get("/", response_model=list[TenderResponse])
 def list_tenders(db: Session = Depends(get_db)):
     return db.query(Tender).order_by(Tender.publish_date.desc()).all()
 
 @router.post("", response_model=TenderResponse)
+@router.post("/", response_model=TenderResponse)
 def create_tender(tender: TenderCreate, db: Session = Depends(get_db)):
     db_tender = Tender(
         title=tender.title,

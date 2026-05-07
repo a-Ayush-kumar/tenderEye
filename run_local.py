@@ -25,26 +25,51 @@ def run_backend():
     
     # Install dependencies
     print("Installing backend dependencies...")
-    req_file = os.path.join(BACKEND_DIR, "requirements_local.txt")
-    if not os.path.exists(req_file):
-        req_file = os.path.join(BACKEND_DIR, "requirements.txt")
-    
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-r", req_file],
-        cwd=BACKEND_DIR,
-        capture_output=True,
-        text=True
-    )
-    if result.returncode != 0:
-        print(f"Warning: pip install had issues: {result.stderr[:500]}")
+    # Note: actual file in repo is misspelt as 'requiremnts.txt'.
+    candidates = ["requirements_local.txt", "requirements.txt", "requiremnts.txt"]
+    req_file = None
+    for name in candidates:
+        path = os.path.join(BACKEND_DIR, name)
+        if os.path.exists(path) and os.path.getsize(path) > 0:
+            req_file = path
+            break
+    if req_file is None:
+        print("Warning: no non-empty requirements file found; skipping pip install.")
+        return_after_install = True
     else:
-        print("Backend dependencies installed.")
+        return_after_install = False
+    
+    if not return_after_install:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", req_file],
+            cwd=BACKEND_DIR,
+            capture_output=True,
+            text=True
+        )
+        if result.returncode != 0:
+            print(f"Warning: pip install had issues: {result.stderr[:500]}")
+        else:
+            print(f"Backend dependencies installed from {os.path.basename(req_file)}.")
     
     # Seed database
     print("Seeding database...")
-    seed_script = os.path.join(BACKEND_DIR, "scripts", "seed.py")
-    if os.path.exists(seed_script):
-        subprocess.run([sys.executable, seed_script], cwd=BACKEND_DIR)
+    # Note: actual folder in repo is misspelt as 'scipts'.
+    scripts_dir = None
+    for folder in ("scripts", "scipts"):
+        candidate = os.path.join(BACKEND_DIR, folder)
+        if os.path.isdir(candidate):
+            scripts_dir = candidate
+            break
+    if scripts_dir is None:
+        print("Warning: seed scripts folder not found; database will be empty.")
+    else:
+        # Run base seed first (tender + bidders), then full demo (users, vendors,
+        # additional tenders, bids, VIGIL alerts). All are idempotent.
+        for name in ("seed.py", "seed_vendors.py", "seed_full_demo.py"):
+            path = os.path.join(scripts_dir, name)
+            if os.path.exists(path):
+                print(f"Running {name}...")
+                subprocess.run([sys.executable, path], cwd=BACKEND_DIR)
     
     # Start uvicorn
     print("Starting FastAPI server on http://localhost:8000")

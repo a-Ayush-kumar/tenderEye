@@ -1,9 +1,12 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import tenders, bidders, evaluation, audit, vendors, bid as bids, vigil, ai, auth
 from app.database import init_db
 
-def lifespan(app: FastAPI):
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_db()
     yield
 
