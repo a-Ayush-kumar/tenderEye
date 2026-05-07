@@ -3,6 +3,22 @@ from typing import Optional
 import os
 import tempfile
 
+
+def evaluate_financial(bidder_doc, criterion: dict) -> dict:
+    """Stub financial evaluation.
+
+    Real implementation would parse audited accounts and compare turnover
+    against `criterion["min_turnover"]`. This stub returns NEEDS_REVIEW
+    so the API works without crashing.
+    """
+    return {
+        "verdict": "NEEDS_REVIEW",
+        "reason": "Financial matcher not implemented (stub).",
+        "confidence": 0.3,
+        "source_page": None,
+        "verbatim_quote": None,
+    }
+
 # PaddleOCR lazy import — only loaded when needed (heavy dependency)
 _paddle_ocr = None
 
