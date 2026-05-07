@@ -1,0 +1,43 @@
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-multipart==0.0.20
+httpx==0.28.1
+
+# Database
+# asyncpg - only needed with PostgreSQL, not SQLite local dev
+# alembic - only needed for migrations
+
+# Document Processing
+pdfplumber==0.11.5
+Pillow==11.1.0
+docling==2.92.0
+
+# PDF Report Generation (fpdf2 works everywhere; weasyprint needs GTK)
+fpdf2>=2.7.0
+
+# AI/ML
+numpy==2.2.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Vector DB
+qdrant-client==1.12.0
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
+
+# Optional (uncomment for full Docker deployment):
+# asyncpg==0.30.0
+# alembic==1.14.0
+# boto3==1.35.93
+# weasyprint==63.1
+# rapidfuzz==3.11.0
+# paddlepaddle==2.6.2
+# paddleocr==2.9.1
