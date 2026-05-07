@@ -1,0 +1,58 @@
+# General
+.DB_store
+Thumbs.DB_store
+.vscode/
+.idea/
+*.log
+*.swp
+
+# Dependency
+node_modules/
+bower_components/
+jspm_packages/
+
+# env files
+.env
+.env.local
+.env.example
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# Build
+dist/
+build/
+out/
+.next/
+.cache/
+bin/
+obj/
+
+# testing
+coverage/
+.nyc_output/
+*.lcov
+
+# backend specifics
+# python is the backend language
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+
+# for the database
+*.sqlite
+*.db
+
+# frontend
+.eslintcache
+.stylelintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp*
+.pnp.js
