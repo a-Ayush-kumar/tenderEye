@@ -4,20 +4,97 @@ import os
 import tempfile
 
 
-def evaluate_financial(bidder_doc, criterion: dict) -> dict:
-    """Stub financial evaluation.
+import re
 
-    Real implementation would parse audited accounts and compare turnover
-    against `criterion["min_turnover"]`. This stub returns NEEDS_REVIEW
-    so the API works without crashing.
-    """
+def normalize_amount(text: str) -> float:
+    """Normalize Indian currency strings into standard float amounts."""
+    text = text.lower().replace("rs.", "").replace("rupees", "").replace(",", "").strip()
+    
+    # Try to extract numbers
+    match = re.search(r"(\d+(\.\d+)?)", text)
+    if not match:
+        return 0.0
+        
+    num = float(match.group(1))
+    
+    if "crore" in text or "cr" in text:
+        return num * 10000000.0
+    elif "lakh" in text or "lac" in text:
+        return num * 100000.0
+    
+    return num
+
+def extract_turnover(text: str, time_window: int = 3) -> dict:
+    """Extract turnover values from text and compute average."""
+    if not text:
+        return {"average": 0.0, "matches": [], "verdict": "NEEDS_REVIEW"}
+        
+    # Find all patterns like "Rs. X Crore", "X Lac", "Rs. X"
+    pattern = r"(?:rs\.?|rupees)?\s*(\d+(?:\.\d+)?)\s*(?:crore|cr|lakh|lac)?"
+    matches = re.finditer(pattern, text, re.IGNORECASE)
+    
+    extracted = []
+    for m in matches:
+        val = normalize_amount(m.group(0))
+        if val > 0:
+            extracted.append(val)
+            
+    if not extracted:
+        return {"average": 0.0, "matches": [], "verdict": "NEEDS_REVIEW"}
+        
+    # Take the latest `time_window` matches if there are more
+    relevant = extracted[-time_window:] if len(extracted) > time_window else extracted
+    avg = sum(relevant) / len(relevant)
+    
+    verdict = "OK" if len(extracted) >= time_window else "NEEDS_REVIEW"
+    
     return {
-        "verdict": "NEEDS_REVIEW",
-        "reason": "Financial matcher not implemented (stub).",
-        "confidence": 0.3,
-        "source_page": None,
-        "verbatim_quote": None,
+        "average": avg,
+        "matches": extracted,
+        "verdict": verdict
     }
+
+def evaluate_financial(bidder_doc, criterion: dict) -> dict:
+    """Evaluate financial compliance of a document."""
+    if not bidder_doc or not bidder_doc.extracted_text:
+        return {
+            "verdict": "NEEDS_REVIEW",
+            "reason": "Missing document or extracted text.",
+            "confidence": 0.0,
+            "source_page": None,
+            "verbatim_quote": None,
+        }
+        
+    threshold = criterion.get("threshold", 0)
+    time_window = criterion.get("time_window_years", 3)
+    
+    turnover_data = extract_turnover(bidder_doc.extracted_text, time_window)
+    
+    if turnover_data["verdict"] == "NEEDS_REVIEW" and turnover_data["average"] == 0:
+        return {
+            "verdict": "NEEDS_REVIEW",
+            "reason": "Could not extract sufficient turnover data.",
+            "confidence": 0.3,
+            "source_page": None,
+            "verbatim_quote": None,
+        }
+        
+    if turnover_data["average"] >= threshold:
+        return {
+            "verdict": "ELIGIBLE",
+            "reason": f"Average turnover Rs. {turnover_data['average']/10000000:.2f} Cr meets threshold of Rs. {threshold/10000000:.2f} Cr.",
+            "confidence": 0.8,
+            "source_page": None,
+            "verbatim_quote": None,
+        }
+    else:
+        return {
+            "verdict": "NOT_ELIGIBLE",
+            "reason": f"Average turnover Rs. {turnover_data['average']/10000000:.2f} Cr is below threshold of Rs. {threshold/10000000:.2f} Cr.",
+            "confidence": 0.8,
+            "source_page": None,
+            "verbatim_quote": None,
+        }
 
 # PaddleOCR lazy import — only loaded when needed (heavy dependency)
 _paddle_ocr = None

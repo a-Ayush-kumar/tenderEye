@@ -56,8 +56,7 @@ export default function LoginPage() {
       if (mode === "login") {
         localStorage.setItem("vigil_token", data.access_token);
         localStorage.setItem("vigil_user", JSON.stringify(data.user));
-        router.push("/");
-        window.location.reload();
+        window.location.href = "/";
       } else {
         setMode("login");
         setError("Registration successful! Please log in.");
