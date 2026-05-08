@@ -1,7 +1,13 @@
-import pdfplumber
 from typing import Optional
 import os
 import tempfile
+import logging
+
+try:
+    import pdfplumber  # type: ignore[import-untyped]
+except ImportError:
+    pdfplumber = None  # type: ignore[assignment]
+    logging.warning("pdfplumber not installed – PDF text extraction will be limited.")
 
 
 import re
@@ -97,16 +103,20 @@ def evaluate_financial(bidder_doc, criterion: dict) -> dict:
         }
 
 # PaddleOCR lazy import — only loaded when needed (heavy dependency)
+try:
+    from paddleocr import PaddleOCR  # type: ignore[import-untyped]
+except ImportError:
+    PaddleOCR = None  # type: ignore[assignment,misc]
+
 _paddle_ocr = None
 
 def _get_paddle_ocr():
     """Lazy-load PaddleOCR to avoid startup cost."""
     global _paddle_ocr
     if _paddle_ocr is None:
-        try:
-            from paddleocr import PaddleOCR
+        if PaddleOCR is not None:
             _paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
-        except ImportError:
+        else:
             _paddle_ocr = False  # Mark as unavailable
     return _paddle_ocr if _paddle_ocr is not False else None
 
@@ -198,7 +208,7 @@ async def extract_text_from_pdf(file_path: str) -> dict:
     Fallback 2: PaddleOCR — for scanned/image PDFs if digital extraction yields little text.
     """
     try:
-        from docling.document_converter import DocumentConverter
+        from docling.document_converter import DocumentConverter  # type: ignore[import-untyped]
         import asyncio
         import concurrent.futures
         
